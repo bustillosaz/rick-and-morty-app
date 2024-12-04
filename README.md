@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # rickandmortyapp
 
 A new Flutter project.
@@ -14,3 +15,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# rick-and-morty-app
+app flutter
+>>>>>>> 4195845d3e3ac65a05b6fa66efceb09f1826ff89
