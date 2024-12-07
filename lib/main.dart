@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart'; // Biblioteca principal para construir interfaces gráficas
 import 'package:go_router/go_router.dart'; // Biblioteca para la navegación basada en rutas
 import 'package:provider/provider.dart'; // Biblioteca para la gestión del estado
+import 'package:rickandmortyapp/models/character_model.dart';
 import 'package:rickandmortyapp/providers/api_provider.dart'; // Proveedor de datos de la API
 import 'package:rickandmortyapp/screens/character_screen.dart'; // Pantalla de detalles del personaje
 import 'package:rickandmortyapp/screens/home_screen.dart'; // Pantalla principal
@@ -22,7 +23,10 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: 'character', // Ruta para la pantalla de detalles del personaje
           builder: (context, state) {
-            return const CharacterScreen(); // Renderiza la pantalla de detalles
+            final character = state.extra as Character;
+            return CharacterScreen(
+              character: character,
+            ); // Renderiza la pantalla de detalles
           },
         )
       ],

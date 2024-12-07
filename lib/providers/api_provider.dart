@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart'; // Biblioteca principal para construir interfaces gráficas
 import 'package:rickandmortyapp/models/character_model.dart'; // Modelo de datos para los personajes
-import 'package:http/http.dart' as http; // Biblioteca para realizar solicitudes HTTP
+import 'package:http/http.dart'
+    as http; // Biblioteca para realizar solicitudes HTTP
 
 // Proveedor de la API que utiliza ChangeNotifier para gestionar el estado
 class ApiProvider with ChangeNotifier {
@@ -11,9 +12,11 @@ class ApiProvider with ChangeNotifier {
   List<Character> characters = [];
 
   // Método asincrónico para obtener los datos de los personajes
-  Future<void> getCharacter() async {
+  Future<void> getCharacters(int page) async {
     // Realiza una solicitud GET a la API para obtener los personajes
-    final result = await http.get(Uri.https(url, "/api/character"));
+    final result = await http.get(Uri.https(url, "/api/character", {
+      'page': page.toString(),
+    }));
 
     // Convierte la respuesta JSON en objetos de tipo Character
     final response = characterResponseFromJson(result.body);
@@ -25,4 +28,3 @@ class ApiProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-

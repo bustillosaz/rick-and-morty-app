@@ -12,12 +12,30 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final scrollController = ScrollController();
+  bool isLoading = false;
+  int page = 1;
+
   @override
   void initState() {
     super.initState();
     // Inicializa el proveedor de API para cargar los datos de personajes
     final apiProvider = Provider.of<ApiProvider>(context, listen: false);
-    apiProvider.getCharacter(); // Llama al método para obtener los personajes
+    apiProvider
+        .getCharacters(page); // Llama al método para obtener los personajes
+    scrollController.addListener(() async {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
+        setState(() {
+          isLoading = true;
+        });
+        page++;
+        await apiProvider.getCharacters(page);
+        setState(() {
+          isLoading = false;
+        });
+      }
+    });
   }
 
   @override
@@ -38,7 +56,11 @@ class _HomeScreenState extends State<HomeScreen> {
         width: double.infinity, // Ocupa todo el ancho disponible
         // Verifica si la lista de personajes no está vacía
         child: apiProvider.characters.isNotEmpty
-            ? CharacterList(apiProvider: apiProvider) // Muestra la lista de personajes
+            ? CharacterList(
+                apiProvider: apiProvider,
+                isLoading: isLoading,
+                scrollController: scrollController,
+              ) // Muestra la lista de personajes
             : const Center(
                 child: CircularProgressIndicator(), // Indicador de carga
               ),
@@ -49,9 +71,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // Widget para mostrar la lista de personajes en formato de cuadrícula
 class CharacterList extends StatelessWidget {
-  const CharacterList({super.key, required this.apiProvider});
+  const CharacterList(
+      {super.key,
+      required this.apiProvider,
+      required this.scrollController,
+      required this.isLoading});
 
-  final ApiProvider apiProvider; // Proveedor que contiene los datos de personajes
+  final ApiProvider
+      apiProvider; // Proveedor que contiene los datos de personajes
+  final ScrollController scrollController;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -62,38 +91,54 @@ class CharacterList extends StatelessWidget {
         mainAxisSpacing: 10, // Espaciado vertical entre celdas
         crossAxisSpacing: 10, // Espaciado horizontal entre celdas
       ),
-      itemCount: apiProvider.characters.length, // Número de elementos en la lista
+      itemCount: isLoading
+          ? apiProvider.characters.length + 2
+          : apiProvider.characters.length, // Número de elementos en la lista
+      controller: scrollController,
       itemBuilder: (context, index) {
-        final character = apiProvider.characters[index]; // Obtiene cada personaje
+        if (index < apiProvider.characters.length) {
+          final character =
+              apiProvider.characters[index]; // Obtiene cada personaje
 
-        return GestureDetector(
-          onTap: () {
-            context.go('/character'); // Navega a los detalles del personaje
-          },
-          child: Card(
-            child: Column(
-              children: [
-                // Imagen con esquinas redondeadas
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15), // Redondea las esquinas
-                  child: FadeInImage(
-                    placeholder:
-                        const AssetImage('assets/images/rick-and-morty.gif'), // Imagen temporal mientras carga
-                    image: NetworkImage(character.image!), // Imagen del personaje desde la API
+          return GestureDetector(
+            onTap: () {
+              context.go('/character', extra: character); // Navega a los detalles del personaje
+            },
+            child: Card(
+              child: Column(
+                children: [
+                  // Imagen con esquinas redondeadas
+                  ClipRRect(
+                    borderRadius:
+                        BorderRadius.circular(15), // Redondea las esquinas
+                    child: Hero(
+                      tag: character.id!,
+                      child: FadeInImage(
+                        placeholder: const AssetImage(
+                            'assets/images/rick-and-morty.gif'), // Imagen temporal mientras carga
+                        image: NetworkImage(character
+                            .image!), // Imagen del personaje desde la API
+                      ),
+                    ),
                   ),
-                ),
-                // Nombre del personaje
-                Text(
-                  character.name!,
-                  style: const TextStyle(
-                    fontSize: 16, // Tamaño del texto
-                    overflow: TextOverflow.ellipsis, // Recorta si el texto es demasiado largo
+                  // Nombre del personaje
+                  Text(
+                    character.name!,
+                    style: const TextStyle(
+                      fontSize: 16, // Tamaño del texto
+                      overflow: TextOverflow
+                          .ellipsis, // Recorta si el texto es demasiado largo
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
       },
     );
   }
